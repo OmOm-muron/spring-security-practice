@@ -1,26 +1,32 @@
 package com.example.config;
 
-import java.util.List;
+import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    @Value("${app.user-xml-file}")
-    private String userXMLFileName;
+    @Value("${spring.datasource.url}")
+    private String databaseUrl;
+    
+    @Value("${spring.datasource.username}")
+    private String databaseUsername;
+    
+    @Value("${spring.datasource.password}")
+    private String databasePassword;
     
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,17 +43,28 @@ public class SecurityConfig {
     
     @Bean
     protected PasswordEncoder passwordEncoder() {
+        // in default constructor, encoding strength is 10
         return new BCryptPasswordEncoder(); 
     }
     
     @Bean
-    protected UserDetailsService userDetailsService() throws Exception {
-        try {
-            List<UserDetails> users = UserXMLConfigurer.getUsers(userXMLFileName);
-            return new InMemoryUserDetailsManager(users);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+    protected DataSource dataSource() {
+        return new DriverManagerDataSource(databaseUrl, databaseUsername, databasePassword);
+    }
+    
+    @Bean
+    protected UserDetailsService userDetailsService(DataSource dataSource) {
+        JdbcUserDetailsManager jdbcManager = new JdbcUserDetailsManager(dataSource);
+        // this is set to false by default, so you need not set it
+        jdbcManager.setEnableGroups(false);
+        // override query for find user
+        jdbcManager.setUsersByUsernameQuery(
+                "SELECT username, password, 'true' as enabled FROM users WHERE username = ?"
+        );
+        // override query for find role(authority)
+        jdbcManager.setAuthoritiesByUsernameQuery(
+                "select username,authority from authorities where username = ?"
+        );
+        return jdbcManager;
     }
 }
