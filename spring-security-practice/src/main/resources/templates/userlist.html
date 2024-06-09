@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+</head>
+<body>
+    <h2>User List</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Enabled</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="securityUser : ${securityUsers}">
+                <td th:text="${securityUser.username}"></td>
+                <td th:text="${securityUser.enabled}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <a href="/add-user">Add New User</a>
+    <br>
+    <a href="/">Test Login</a>
+</body>
+</html>

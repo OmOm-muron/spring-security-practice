@@ -1,21 +1,10 @@
-CREATE TABLE users (
+CREATE TABLE security_user (
     username VARCHAR(64) PRIMARY KEY,
-    password VARCHAR(64) NOT NULL
+    password VARCHAR(64) NOT NULL,
+    enabled boolean NOT NULL DEFAULT true
 );
 
-CREATE TABLE authorities (
-    username VARCHAR(64) NOT NULL REFERENCES users(username),
-    authority VARCHAR(32) NOT NULL
-);
-
-INSERT INTO users (
-    username, password
-) VALUES (
-    'admin', '$2a$08$SOIknkK2e/D5lGyApRKSoe/lKYc6axgOsR3abEHtjjBJQWDUuIGAy'
-);
-
-INSERT INTO authorities (
-    username, authority
-) VALUES (
-    'admin', 'ROLE_USER'
+CREATE TABLE role (
+    username VARCHAR(64) NOT NULL REFERENCES security_user(username),
+    role VARCHAR(32) NOT NULL
 );

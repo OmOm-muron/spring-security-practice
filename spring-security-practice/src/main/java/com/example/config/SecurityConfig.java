@@ -31,10 +31,14 @@ public class SecurityConfig {
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authz -> authz
-                .anyRequest().authenticated()
+                .requestMatchers("/add-user").permitAll()
+                .requestMatchers("/userlist").permitAll()
+                // following line is default set. in this sample, I intendedly 'permitAll' above.
+//                .anyRequest().authenticated()
         ).formLogin(login -> login
-                .loginProcessingUrl("/login")
-                .failureUrl("/login?error")
+                .usernameParameter("userid")
+                .loginPage("/login").permitAll()    // 'permitAll' is necessary
+                .successForwardUrl("/")
         ).logout(logout -> logout
                 .logoutUrl("/logout")
         );
@@ -59,11 +63,11 @@ public class SecurityConfig {
         jdbcManager.setEnableGroups(false);
         // override query for find user
         jdbcManager.setUsersByUsernameQuery(
-                "SELECT username, password, 'true' as enabled FROM users WHERE username = ?"
+                "SELECT username, password, enabled FROM security_user WHERE username = ?"
         );
         // override query for find role(authority)
         jdbcManager.setAuthoritiesByUsernameQuery(
-                "select username,authority from authorities where username = ?"
+                "SELECT username, role FROM role WHERE username = ?"
         );
         return jdbcManager;
     }
