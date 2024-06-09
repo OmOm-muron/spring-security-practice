@@ -23,7 +23,7 @@ public class SecurityConfig {
     private String userXMLFileName;
     
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authz -> authz
                 .anyRequest().authenticated()
         ).formLogin(login -> login
@@ -36,12 +36,12 @@ public class SecurityConfig {
     }
     
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    protected PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(); 
     }
     
     @Bean
-    public UserDetailsService userDetailsService() throws Exception {
+    protected UserDetailsService userDetailsService() throws Exception {
         try {
             List<UserDetails> users = UserXMLConfigurer.getUsers(userXMLFileName);
             return new InMemoryUserDetailsManager(users);
